@@ -12,8 +12,8 @@
     <dependencies>
         <dependency>
             <groupId>io.netty</groupId>
-            <artifactId>netty</artifactId> <!-- Use 'netty-all' for 4.0 or above -->
-            <version>X.Y.Z.Q</version>
+            <artifactId>netty-all</artifactId> <!-- Use 'netty-all' for 4.0 or above -->
+            <version>5.0.0.Alpha2</version>
             <scope>compile</scope>
         </dependency>
     </dependencies>
@@ -30,7 +30,4 @@
             </plugin>
         </plugins>
     </build>
-
-    <dependencies>
-    </dependencies>
 </project>
