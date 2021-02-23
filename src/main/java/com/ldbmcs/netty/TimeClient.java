@@ -10,31 +10,44 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 
 public class TimeClient {
-    public static void main(String[] args) throws Exception {
-
-        String host = args[0];
-        int port = Integer.parseInt(args[1]);
-        EventLoopGroup workerGroup = new NioEventLoopGroup();
-
+    public void connect(int port, String host) throws Exception {
+        // 配置客户端NIO线程组
+        EventLoopGroup group = new NioEventLoopGroup();
         try {
-            Bootstrap b = new Bootstrap(); // (1)
-            b.group(workerGroup); // (2)
-            b.channel(NioSocketChannel.class); // (3)
-            b.option(ChannelOption.SO_KEEPALIVE, true); // (4)
-            b.handler(new ChannelInitializer<SocketChannel>() {
-                @Override
-                public void initChannel(SocketChannel ch) throws Exception {
-                    ch.pipeline().addLast(new TimeClientHandler());
-                }
-            });
+            Bootstrap b = new Bootstrap();
+            b.group(group).channel(NioSocketChannel.class)
+                    .option(ChannelOption.TCP_NODELAY, true)
+                    .handler(new ChannelInitializer<SocketChannel>() {
+                        @Override
+                        public void initChannel(SocketChannel ch) {
+                            ch.pipeline().addLast(new TimeClientHandler());
+                        }
+                    });
 
-            // 启动客户端
-            ChannelFuture f = b.connect(host, port).sync(); // (5)
+            // 发起异步连接操作
+            ChannelFuture f = b.connect(host, port).sync();
 
-            // 等待连接关闭
+            // 当代客户端链路关闭
             f.channel().closeFuture().sync();
         } finally {
-            workerGroup.shutdownGracefully();
+            // 优雅退出，释放NIO线程组
+            group.shutdownGracefully();
         }
+    }
+
+    /**
+     * @param args
+     * @throws Exception
+     */
+    public static void main(String[] args) throws Exception {
+        int port = 8080;
+        if (args != null && args.length > 0) {
+            try {
+                port = Integer.parseInt(args[0]);
+            } catch (NumberFormatException e) {
+                // 采用默认值
+            }
+        }
+        new TimeClient().connect(port, "127.0.0.1");
     }
 }
